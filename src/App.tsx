@@ -1,5 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 interface Order {
   id: number;
@@ -16,6 +25,8 @@ interface Order {
 function App() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20; // Mostrar 20 elementos por página
 
   useEffect(() => {
     fetch('https://jiql4i2xy4.execute-api.us-east-1.amazonaws.com/prod/api/orders')
@@ -35,103 +46,181 @@ function App() {
       });
   }, []);
 
+  // Calcular datos de paginación
+  const totalPages = Math.ceil(orders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentOrders = orders.slice(startIndex, endIndex);
+
+  // Función para manejar el cambio de página
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Generar números de página para mostrar
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('ellipsis');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('ellipsis');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('ellipsis');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push('ellipsis');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
+  };
+
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-      <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '2rem', textAlign: 'center' }}>
+    <div className="p-8 max-w-6xl mx-auto">
+      <h1 className="text-4xl font-bold mb-8 text-center">
         Maki Orders
       </h1>
       
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <div style={{ 
-            display: 'inline-block', 
-            width: '2rem', 
-            height: '2rem', 
-            border: '3px solid #f3f3f3',
-            borderTop: '3px solid #3498db',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite'
-          }}></div>
-          <p style={{ marginTop: '1rem', color: '#666' }}>Cargando...</p>
+        <div className="text-center py-8">
+          <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray-600">Cargando...</p>
         </div>
       ) : (
-        <div style={{ 
-          backgroundColor: 'white', 
-          borderRadius: '8px', 
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)', 
-          padding: '1.5rem' 
-        }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1rem' }}>
-            Órdenes ({orders.length})
-          </h2>
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-semibold">
+              Órdenes ({orders.length} total)
+            </h2>
+            <div className="text-sm text-gray-600">
+              Página {currentPage} de {totalPages} 
+              ({currentOrders.length} de {orders.length} órdenes)
+            </div>
+          </div>
           
           {orders.length === 0 ? (
-            <p style={{ textAlign: 'center', color: '#666', padding: '2rem' }}>
+            <p className="text-center text-gray-600 py-8">
               No hay órdenes disponibles
             </p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {orders.map((order) => (
-                <div key={order.id} style={{ 
-                  border: '1px solid #e5e5e5', 
-                  borderRadius: '8px', 
-                  padding: '1rem',
-                  backgroundColor: '#fafafa'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                    <div>
-                      <h3 style={{ fontSize: '1.1rem', fontWeight: '600', margin: '0 0 0.25rem 0' }}>
-                        {order.product_name}
-                      </h3>
-                      <p style={{ color: '#666', margin: '0' }}>
-                        Cliente: {order.user_name}
-                      </p>
-                    </div>
-                    <span style={{
-                      padding: '0.25rem 0.5rem',
-                      borderRadius: '12px',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      backgroundColor: order.status === 'delivered' ? '#dcfce7' : 
-                                     order.status === 'preparing' ? '#fef3c7' : 
-                                     order.status === 'confirmed' ? '#dbeafe' : '#f3f4f6',
-                      color: order.status === 'delivered' ? '#166534' : 
-                             order.status === 'preparing' ? '#92400e' : 
-                             order.status === 'confirmed' ? '#1e40af' : '#374151'
-                    }}>
-                      {order.status}
-                    </span>
-                  </div>
-                  
-                  <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
-                    gap: '1rem', 
-                    marginTop: '0.5rem',
-                    fontSize: '0.875rem'
-                  }}>
-                    <div>
-                      <span style={{ color: '#666' }}>ID:</span>
-                      <span style={{ marginLeft: '0.5rem', fontWeight: '500' }}>{order.id}</span>
-                    </div>
-                    <div>
-                      <span style={{ color: '#666' }}>Precio:</span>
-                      <span style={{ marginLeft: '0.5rem', fontWeight: '500' }}>${order.total_price}</span>
-                    </div>
-                    <div>
-                      <span style={{ color: '#666' }}>Pago:</span>
-                      <span style={{ marginLeft: '0.5rem', fontWeight: '500' }}>{order.payment_method}</span>
-                    </div>
-                    <div>
-                      <span style={{ color: '#666' }}>Fecha:</span>
-                      <span style={{ marginLeft: '0.5rem', fontWeight: '500' }}>
-                        {new Date(order.order_date).toLocaleDateString()}
+            <>
+              <div className="space-y-4 mb-8" style={{display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px'}}>
+                {currentOrders.map((order) => (
+                  <div key={order.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors" style={{border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', backgroundColor: '#f9fafb', transition: 'background-color 0.2s'}}>
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="text-lg font-semibold mb-1">
+                          {order.product_name}
+                        </h3>
+                        <p className="text-gray-600">
+                          Cliente: {order.user_name}
+                        </p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        order.status === 'delivered' ? 'bg-green-100 text-green-800' : 
+                        order.status === 'preparing' ? 'bg-yellow-100 text-yellow-800' : 
+                        order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' : 
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {order.status}
                       </span>
                     </div>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-600">ID:</span>
+                        <span className="ml-2 font-medium">{order.id}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Precio:</span>
+                        <span className="ml-2 font-medium">${order.total_price}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Pago:</span>
+                        <span className="ml-2 font-medium">{order.payment_method}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Fecha:</span>
+                        <span className="ml-2 font-medium">
+                          {new Date(order.order_date).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+
+              {/* Componente de paginación */}
+              {totalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        href="#"
+                        onClick={(e: React.MouseEvent) => {
+                          e.preventDefault();
+                          if (currentPage > 1) {
+                            handlePageChange(currentPage - 1);
+                          }
+                        }}
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                    
+                    {getPageNumbers().map((page, index) => (
+                      <PaginationItem key={index}>
+                        {page === 'ellipsis' ? (
+                          <PaginationEllipsis />
+                        ) : (
+                          <PaginationLink
+                            href="#"
+                            onClick={(e: React.MouseEvent) => {
+                              e.preventDefault();
+                              handlePageChange(page as number);
+                            }}
+                            isActive={currentPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        )}
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        href="#"
+                        onClick={(e: React.MouseEvent) => {
+                          e.preventDefault();
+                          if (currentPage < totalPages) {
+                            handlePageChange(currentPage + 1);
+                          }
+                        }}
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </>
           )}
         </div>
       )}
