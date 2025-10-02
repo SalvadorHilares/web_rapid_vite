@@ -18,7 +18,7 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://34.224.190.194:8000/orders')
+    fetch('https://jiql4i2xy4.execute-api.us-east-1.amazonaws.com/prod/api/orders')
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
