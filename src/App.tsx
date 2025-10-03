@@ -29,7 +29,7 @@ function App() {
   const itemsPerPage = 20; // Mostrar 20 elementos por página
 
   useEffect(() => {
-    fetch('https://jiql4i2xy4.execute-api.us-east-1.amazonaws.com/prod/api/orders')
+    fetch('https://jiql4i2xy4.execute-api.us-east-1.amazonaws.com/prod/api/orders/orders/')
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
