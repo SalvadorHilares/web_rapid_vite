@@ -1,17 +1,16 @@
 // Configuración de APIs para diferentes entornos
-
-const isDevelopment = import.meta.env.DEV
+import { ENV_CONFIG, debugLog } from './env'
 
 // URLs base de los microservicios
 const API_BASE_URLS = {
   development: '', // Usar proxy de Vite
-  production: 'https://jiql4i2xy4.execute-api.us-east-1.amazonaws.com/prod'
+  production: ENV_CONFIG.API_BASE_URL
 }
 
 // Configuración actual
 export const API_CONFIG = {
-  baseUrl: isDevelopment ? API_BASE_URLS.development : API_BASE_URLS.production,
-  isDevelopment,
+  baseUrl: ENV_CONFIG.IS_DEVELOPMENT ? API_BASE_URLS.development : API_BASE_URLS.production,
+  isDevelopment: ENV_CONFIG.IS_DEVELOPMENT,
   timeout: 10000, // 10 segundos
 }
 
@@ -38,12 +37,29 @@ export const ENDPOINTS = {
 
 // Función helper para construir URLs completas
 export const buildApiUrl = (endpoint: string): string => {
-  return `${API_CONFIG.baseUrl}${endpoint}`
+  // Si el endpoint ya es una URL completa, usarla directamente
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    return endpoint
+  }
+  
+  // Si hay una base URL configurada, prependerla
+  if (API_CONFIG.baseUrl) {
+    // Asegurarse de que no haya doble barra
+    const cleanedBaseUrl = API_CONFIG.baseUrl.endsWith('/') ? API_CONFIG.baseUrl.slice(0, -1) : API_CONFIG.baseUrl
+    const cleanedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+    return `${cleanedBaseUrl}${cleanedEndpoint}`
+  }
+  
+  // Si no hay base URL, usar el endpoint tal cual (desarrollo con proxy)
+  return endpoint
 }
 
-// Función helper para logging en desarrollo
+// Función helper para logging
 export const logApiCall = (method: string, url: string, data?: any) => {
-  if (API_CONFIG.isDevelopment) {
-    console.log(`🌐 API ${method}: ${url}`, data ? { data } : '')
-  }
+  debugLog(`🌐 API ${method}: ${url}`, {
+    isDevelopment: API_CONFIG.isDevelopment,
+    baseUrl: API_CONFIG.baseUrl,
+    envConfig: ENV_CONFIG,
+    data: data || 'no data'
+  })
 }

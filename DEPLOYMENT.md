@@ -9,7 +9,21 @@ Para el despliegue en producción, asegúrate de que las siguientes variables es
 ```bash
 # URL base de la API Gateway
 VITE_API_BASE_URL=https://jiql4i2xy4.execute-api.us-east-1.amazonaws.com/prod
+
+# Para debug (opcional)
+VITE_DEBUG=true
 ```
+
+### 🚨 **IMPORTANTE: Configuración en Amplify**
+
+1. **Ve a AWS Amplify Console**
+2. **Selecciona tu aplicación**
+3. **Ve a "App settings" → "Environment variables"**
+4. **Agrega estas variables:**
+   - `VITE_API_BASE_URL` = `https://jiql4i2xy4.execute-api.us-east-1.amazonaws.com/prod`
+   - `VITE_DEBUG` = `true` (opcional, para debug)
+5. **Guarda los cambios**
+6. **Haz un nuevo deploy**
 
 ### 🌐 Configuración de Amplify
 
