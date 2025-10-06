@@ -1,7 +1,13 @@
-const BASE_URL = '' // usando proxy de Vite en dev para evitar CORS
+import { buildApiUrl, logApiCall } from '@/config/api'
 
 export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const url = buildApiUrl(path)
+  const method = init?.method || 'GET'
+  
+  // Log en desarrollo
+  logApiCall(method, url, init?.body ? JSON.parse(init.body as string) : undefined)
+  
+  const res = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
     ...init,
   })
