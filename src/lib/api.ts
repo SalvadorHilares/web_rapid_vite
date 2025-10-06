@@ -14,8 +14,11 @@ export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T>
   }
   
   const res = await fetch(url, {
-    headers,
     ...init,
+    headers: {
+      ...headers,
+      ...init?.headers,
+    },
   })
   
   if (!res.ok) {
