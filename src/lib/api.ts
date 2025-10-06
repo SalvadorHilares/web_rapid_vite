@@ -7,8 +7,14 @@ export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T>
   // Log en desarrollo
   logApiCall(method, url, init?.body ? JSON.parse(init.body as string) : undefined)
   
+  // ✅ Solo enviar Content-Type si hay body (evita CORS preflight en GET)
+  const headers: Record<string, string> = {}
+  if (init?.body) {
+    headers['Content-Type'] = 'application/json'
+  }
+  
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     ...init,
   })
   
